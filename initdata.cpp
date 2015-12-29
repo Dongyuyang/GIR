@@ -5,8 +5,8 @@
 
 int main()
 {
-  int number = 1000;
-  int d = 10;
+  int number = 10000;
+  int d = 6;
   
   std::vector<std::vector<double> > aa(number);
   std::vector<std::vector<double> > ww(number);
@@ -26,11 +26,17 @@ int main()
   weight.append(std::to_string(d));
   weight.append(".dat");
   
-  std::string index = "./data/index_";
-  index.append(std::to_string(number));
-  index.append("_");
-  index.append(std::to_string(d));
-  index.append(".dat");
+  std::string indexp = "./data/index_P";
+  indexp.append(std::to_string(number));
+  indexp.append("_");
+  indexp.append(std::to_string(d));
+  indexp.append(".dat");
+
+  std::string indexw = "./data/index_W";
+  indexw.append(std::to_string(number));
+  indexw.append("_");
+  indexw.append(std::to_string(d));
+  indexw.append(".dat");
   
 
   write_vec(product,aa);
@@ -45,9 +51,13 @@ int main()
   }
 
   bitChar bc;
-  std::ofstream outf(index);
+  std::ofstream outf(indexp);
   bc.setBITS(bc.covert_vec(g.m_index_a,8));
   bc.insertBits(outf);
+  bitChar bc_2;
+  std::ofstream outf_w(indexw);
+  bc_2.setBITS(bc_2.covert_vec(g.m_index_b,8));
+  bc_2.insertBits(outf_w);
 
   
 
