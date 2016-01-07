@@ -5,7 +5,7 @@
 
 int main()
 {
-  int number = 10000;
+  int number = 1000;
   int d = 6;
   
   std::vector<std::vector<double> > aa(number);

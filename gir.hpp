@@ -1,5 +1,6 @@
 #include <math.h>
 #include <vector>
+#include <iostream>
 
 class gir
 {
@@ -55,16 +56,19 @@ public:
     //double upper = 0.0;
     for(int i = 0; i < p.size();i++){
       lower += m_grid[ w[i] ][ p[i] ];
-      //upper += m_grid[ w[i] ][ p[i] ];
-      /* if(lower > value)
-	 return -1;*/
+      //upper += m_grid[ w[i] + 1][ p[i] + 1 ];
+      if(lower > value)
+	return -1;
     }
-    /*if(upper < value)
+    //upper = lower + m_step_a*m_step_b*p.size();
+    //if(upper < value)
+    if(lower + 0.06 < value)
       return 1;
-      else*/
+    else
       return 0;
-
   }
+
+  
 
 
   std::vector<std::vector<double> > m_grid;

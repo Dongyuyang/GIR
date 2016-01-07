@@ -1,122 +1,165 @@
 #include "gir.hpp"
 #include "../commonTool/common_tool.hpp"
 #include "../commonTool/catch.h"
+#include "../commonTool/init_data.hpp"
 #include "bitio.hpp"
 
 int main()
 {
-  int number = 50000;
+  int number = 10000;
   int d = 10;
+  int k = 10000;
+  std::string product_data = "./data/P_";
+  product_data.append(std::to_string(number));
+  product_data.append("_");
+  product_data.append(std::to_string(d));
+  product_data.append(".dat");
+
+  std::string weight_data = "./data/W_";
+  weight_data.append(std::to_string(number));
+  weight_data.append("_");
+  weight_data.append(std::to_string(d));
+  weight_data.append(".dat");
+
+  std::string indexp = "./data/index_P";
+  indexp.append(std::to_string(number));
+  indexp.append("_");
+  indexp.append(std::to_string(d));
+  indexp.append(".dat");
+
+  std::string indexw = "./data/index_W";
+  indexw.append(std::to_string(number));
+  indexw.append("_");
+  indexw.append(std::to_string(d));
+  indexw.append(".dat");
+
   
-  std::vector<std::vector<double> > aa(number);
-  std::vector<std::vector<double> > ww(number);
-
-  randinit(aa,d,0,1);
-  randinit_w(ww,d,0,1);
-
-  write_vec("./data/products.dat",aa);
-  write_vec("./data/weights.dat",ww);
-
-  /*gir g;
+  gir g;
   g.initGrid(128,128,1,1);
-
-  for(int i = 0; i < aa.size();i++){
-    g.addIndexP(aa[i]);
-    g.addIndexW(ww[i]);
-    }*/
-
-  /*for(int i = 0; i < aa.size();i++){
-    put_vector(g.m_index_a[i]);
-    }*/
-
-  /*bitChar bc;
-  std::ofstream outf("Sample.dat");
-  bc.setBITS(bc.covert_vec(g.m_index_a,8));
-  bc.insertBits(outf);*/
-
-  /*std::vector<std::vector<int> > index(number);
+  
+  std::vector<std::vector<int> > index_p(number);
+  std::vector<std::vector<int> > index_w(number);
   
   CATCH bcost;
   bcost.catch_time();
-  auto byte_vec = read_by_BYTE("sample.dat");
+  auto byte_vec_p = read_by_BYTE(indexp);
+  auto byte_vec_w = read_by_BYTE(indexw);
   int st = 0;
-  for(int j = 0; j < index.size(); j++){
-    std::vector<int> temp(d);
-    for(int i = 0; i < temp.size();i++){
-      temp[i] = (int)byte_vec[st++];
+  for(int j = 0; j < number; j++){
+    std::vector<int> t_p(d);
+    std::vector<int> t_w(d);
+    for(int i = 0; i < d;i++){
+      t_p[i] = (int)byte_vec_p[st];
+      t_w[i] = (int)byte_vec_w[st];
+      st++;
     }
-    index[j] = temp;
+    index_p[j] = t_p;
+    index_w[j] = t_w;
   }
-  bcost.catch_time();*/
-  
-  /*std::cout << "bcost: " << bcost.get_cost(2) << " millisecond(s)" << std::endl;
-  
-  for(auto &dfg : index){
-    put_vector(dfg);
-  }
+ 
+  bcost.catch_time();
+  std::cout << "bcost: " << bcost.get_cost(2) << " millisecond(s)" << std::endl;
 
-  std::cout << std::endl;*/
-  
-  //std::cout << bc.covert_vec(g.m_index_a,5)  << std::endl;
 
-  CATCH pcost;
   std::vector<std::vector<double> > p(number);
+  std::vector<std::vector<double> > w(number);
+  CATCH pcost;
   pcost.catch_time();
-  read_file(p,d,"./data/products.dat");
+  read_file(p,d,product_data);
+  read_file(w,d,weight_data);
   pcost.catch_time();
   std::cout << "pcost: " << pcost.get_cost(2) << " millisecond(s)" << std::endl;
 
-  std::vector<std::vector<double> > w(number);
-  read_file(w,d,"./data/weights.dat");
-
+  int rand_number = get_rand(1,number);
+  std::vector<double> q = p[rand_number];
+  //std::vector<double> q(6,0);
+  //q[rand_number] = 0.1;
+  put_vector(q);
   
-
-  
-
-  
-  
-  /*g.addIndexP(p);
-  g.addIndexW(w);
-
-  put_vector(g.m_index_a[0]);*/
-
-
   CATCH simcost;
   simcost.catch_time();
-  for(auto &wei : w){
-    for(auto &pro : p){
-      auto aaa = inner_product(wei,pro);
+  std::vector<int> sim_result;
+  for(int i = 0; i < number; i++){
+    int sim_count = 0;
+    double q_score = inner_product(q,w[i]);
+    for(int j = 0; j < number; j++){
+      //double q_score = inner_product(q,w[i]);
+      double p_score = inner_product(p[j],w[i]);
+      if(p_score < q_score){
+	sim_count++;
+	if(sim_count > k){
+	  break;
+	}
+      }
     }
+    if(sim_count <= k)
+      sim_result.push_back(i);
   }
   simcost.catch_time();
 
+  auto grid = g.m_grid;
+  
     
-  /* CATCH gircost;
-  gircost.catch_time();
+  CATCH gircost;
+  std::vector<int> girresult;
+  double q_score,p_score;
+  int flag;
+  int gir_count = 0;
   double lower = 0;
-  double upper = 0;
-  for(int i = 0; i < number*number; i++){
-    //double a = g.check_score_index(g.m_index_a[0],g.m_index_b[0],10000);
-    for(int j = 0; j < d; j++){
-      //lower += g.m_grid[ g.m_index_a[6][5] ][ g.m_index_b[3][4] ];
-      lower += index[6][7] + index[100][7];
-      upper += index[7][8] + index[101][8];
-    }
-    lower = 0;
-    upper = 0;
-    }*/
-  /*for(int i = 0; i < 1000000; i++){
-    int a = 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10;
-    }
-  
-  
-    gircost.catch_time();*/
+  int index_pp, index_ww;
+  gircost.catch_time();
+  for(int i = 0; i < number;i++){
+    q_score = inner_product(q,w[i]);
+    for(int j = 0; j < number;j++){
+      //flag = g.check_score_index(index_p[j],index_w[i],q_score);
+
+      for(int k = 0; k < d; k++){
+	lower += g.m_grid[3][4];
+	//lower += g.m_grid[index_ww][index_pp];
+      }
+      
+      /*if(flag == 1){
+	gir_count++;
+	if(gir_count > k){
+	  break;
+	}
+      }
+      if(flag == 0){
+	p_score = inner_product(p[j],w[i]);
+	if(p_score < q_score){
+	  gir_count++;
+	  if(gir_count > k)
+	    break;
+	}
+	}*/
 
 
-  //std::cout << "gir: cpu cost is " << gircost.get_cost(2) << " millisecond(s)" << std::endl;
+    }
+    if(gir_count <= k)
+      girresult.push_back(i);
+    gir_count = 0;
+  }
+  
+  gircost.catch_time();
+
+
+  std::cout << "s result size: " << sim_result.size() << std::endl;
+  std::cout << "g result size: " << girresult.size() << std::endl;
+  if(sim_result.size() != girresult.size()){
+    std::cout << "error!"<< std::endl;
+  }
+  else{
+    for(int i = 0; i < sim_result.size();i++){
+      if(sim_result[i] != girresult[i]){
+	std::cout << "error!"<< std::endl;
+	break;
+      }
+    }
+  }
+  
 
   std::cout << "sim: cpu cost is " << simcost.get_cost(2) << " millisecond(s)" << std::endl;
-  
+  std::cout << "gir: cpu cost is " << gircost.get_cost(2) << " millisecond(s)" << std::endl;
 
   
 
